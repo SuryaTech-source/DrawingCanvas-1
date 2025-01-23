@@ -1,0 +1,15 @@
+<header class="header">
+    <h1>Collaborative Drawing App</h1>
+    <button *ngIf="user; else loginButton" (click)="logout()">Logout</button>
+  <ng-template #loginButton>
+    <button *ngIf="!user" (click)="login()">Login</button>
+  </ng-template>
+  
+    <div class="notifications">
+      <h3>Notifications</h3>
+      <ul>
+        <li *ngFor="let notification of notifications">{{ notification }}</li>
+      </ul>
+    </div>
+  </header>
+  

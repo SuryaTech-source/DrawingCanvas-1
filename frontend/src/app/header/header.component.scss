@@ -1,0 +1,42 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #4caf50;
+    color: white;
+  
+    button {
+      background-color: #ff5722;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+  
+      &:hover {
+        background-color: #e64a19;
+      }
+    }
+  
+    .notifications {
+      margin-top: 10px;
+  
+      h3 {
+        margin-bottom: 5px;
+      }
+  
+      ul {
+        list-style: none;
+        padding: 0;
+  
+        li {
+          background: #f1f1f1;
+          margin: 5px 0;
+          padding: 10px;
+          border-radius: 5px;
+        }
+      }
+    }
+  }
+  
