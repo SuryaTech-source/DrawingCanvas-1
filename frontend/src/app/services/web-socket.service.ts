@@ -13,10 +13,14 @@ export class WebSocketService {
     this.socket.onerror = (error) => {
       console.error('WebSocket Error:', error);
     };
+
+    // Reconnect logic can be added here if needed
   }
 
   // Send data to the WebSocket server
   send(data: any): void {
+    console.log(data);
+    
     if (this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(data));
     } else {
@@ -27,12 +31,30 @@ export class WebSocketService {
   // Listen for incoming messages
   onMessage(callback: (data: any) => void): void {
     this.socket.onmessage = (event) => {
-      try {
-        const parsedData = JSON.parse(event.data);
-        callback(parsedData);
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
+      if (event.data instanceof Blob) {
+        // Convert Blob to text
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsedData = JSON.parse(reader.result as string);
+            console.log('Received from server:', parsedData); // Log received data
+            callback(parsedData);
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
+        reader.readAsText(event.data); // Read the Blob as text
+      } else {
+        // Handle if it's already a string
+        try {
+          const parsedData = JSON.parse(event.data);
+          console.log('Received from server:', parsedData); // Log received data
+          callback(parsedData);
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
       }
     };
   }
+  
 }
