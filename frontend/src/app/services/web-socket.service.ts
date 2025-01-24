@@ -7,19 +7,28 @@ export class WebSocketService {
   private socket: WebSocket;
 
   constructor() {
-    this.socket = new WebSocket('ws://localhost:3000');
+    // Use the deployed backend WebSocket URL
+    this.socket = new WebSocket('wss://drawingcanvas-1.onrender.com');
+
+    // Handle WebSocket connection open
+    this.socket.onopen = () => {
+      console.log('WebSocket connection established');
+    };
 
     // Handle WebSocket errors
     this.socket.onerror = (error) => {
       console.error('WebSocket Error:', error);
     };
 
-    // Reconnect logic can be added here if needed
+    // Handle WebSocket close
+    this.socket.onclose = () => {
+      console.warn('WebSocket connection closed. Consider reconnecting.');
+    };
   }
 
   // Send data to the WebSocket server
   send(data: any): void {
-    console.log(data);
+    console.log('Sending data:', data);
     
     if (this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(data));
@@ -56,5 +65,4 @@ export class WebSocketService {
       }
     };
   }
-  
 }
