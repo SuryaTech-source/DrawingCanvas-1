@@ -1,49 +1,68 @@
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
-const mongoose = require('mongoose');
+const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// MongoDB connection
-// mongoose.connect('mongodb://localhost:27017/drawingApp', { useNewUrlParser: true, useUnifiedTopology: true });
+// Allowed origins
+const allowedOrigins = ['https://drawing-canvas-1frontend.vercel.app', 'http://localhost:4200'];
+
+// CORS middleware for HTTP requests
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+  })
+);
 
 // WebSocket connection handling
-wss.on('connection', (ws) => {
-    console.log('A user connected');
-  
-    ws.on('message', (message) => {
-      try {
-        const data = JSON.parse(message);
-  
-        if (data.type === 'reset') {
-          console.log('Reset event triggered');
-          // Broadcast the reset event to all clients
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({ type: 'reset' }));
-            }
-          });
-        } else {
-          // Broadcast drawing data to all clients except the sender
-          wss.clients.forEach((client) => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify(data));
-            }
-          });
-        }
-      } catch (err) {
-        console.error('Error processing message:', err.message);
+wss.on('connection', (ws, req) => {
+  const origin = req.headers.origin;
+  if (!allowedOrigins.includes(origin)) {
+    console.log(`Connection from origin ${origin} not allowed`);
+    ws.close();
+    return;
+  }
+
+  console.log('A user connected');
+
+  ws.on('message', (message) => {
+    try {
+      const data = JSON.parse(message);
+
+      if (data.type === 'reset') {
+        console.log('Reset event triggered');
+        // Broadcast the reset event to all clients
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'reset' }));
+          }
+        });
+      } else {
+        // Broadcast drawing data to all clients except the sender
+        wss.clients.forEach((client) => {
+          if (client !== ws && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+          }
+        });
       }
-    });
-  
-    ws.on('close', () => {
-      console.log('A user disconnected');
-    });
+    } catch (err) {
+      console.error('Error processing message:', err.message);
+    }
   });
-  
+
+  ws.on('close', () => {
+    console.log('A user disconnected');
+  });
+});
 
 app.get('/', (req, res) => res.send('WebSocket server is running'));
 
